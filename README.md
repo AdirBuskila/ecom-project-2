@@ -39,7 +39,6 @@ ecom-project-2/
 ├── classification.ipynb                   # Part 2 — Classification notebook
 ├── final_gdp_model.joblib                 # Exported regression model
 ├── scaler_gdp.joblib                      # Exported GDP scaler
-├── poly_con_gdp.joblib                    # Exported polynomial converter
 ├── final_churn_model.joblib               # Exported classification model
 ├── final_churn_scaler.joblib              # Exported churn scaler
 ├── Supervised Learning - Home Project.pdf # Original assignment brief
@@ -63,6 +62,7 @@ Predict a country's GDP based on COVID-19 case counts, deaths, recoveries, unemp
    - Dropped `Unnamed: 0` (CSV export artifact)
    - Removed rows with missing values (`dropna`) and duplicates
    - Aggregated the two yearly records per country using `groupby().mean()` so each country contributes a single row
+   - **Log-transformed** `GDP`, `Confirmed`, `Deaths`, and `Recovered` with `np.log1p` to compress their multi-order-of-magnitude range so a linear model can fit the relationship
 2. **Data Exploration**
    - Pairplot + individual feature scatter plots
    - Correlation heatmap
@@ -72,11 +72,11 @@ Predict a country's GDP based on COVID-19 case counts, deaths, recoveries, unemp
    - Ridge Regression (RidgeCV, alpha ∈ [1, 999])
    - Lasso Regression (LassoCV)
    - Polynomial Regression (degrees 1–6, chosen via train/test RMSE curves)
-4. **Evaluation metrics:** MAE, MSE, RMSE
-5. **Deployment:** Final model + scaler + polynomial converter exported to joblib
+4. **Evaluation metrics:** MAE, MSE, RMSE (in log-GDP units, since the target is log-transformed)
+5. **Deployment:** Final model + scaler exported to joblib
 
 ### Final Model
-**Linear Regression** — the lowest MAE/MSE/RMSE across all four candidates. Polynomial regression overfit at higher degrees due to the small sample size (~118 training rows vs. up to 126 polynomial features at degree 4).
+**Ridge Regression** (alpha = 11) — the lowest MAE/MSE/RMSE across all four candidates. The small L2 penalty stabilizes the coefficients of the multicollinear COVID features (`Confirmed`, `Deaths`, `Recovered`), which plain Linear Regression cannot do. Polynomial regression overfit at higher degrees due to the small sample size (~118 training rows vs. up to 126 polynomial features at degree 4).
 
 ---
 
@@ -127,7 +127,7 @@ Both notebooks follow the same disciplined workflow:
 | Step | Regression (covid_gdp) | Classification (classification) |
 |------|------------------------|----------------------------------|
 | Data Cleaning | Drop junk cols, `dropna`, deduplicate | Drop ID col, null/dup checks |
-| Feature Engineering | Aggregate per country | One-hot encode categoricals |
+| Feature Engineering | Aggregate per country, log-transform skewed columns | One-hot encode categoricals |
 | Train/Test Split | `test_size=0.3`, `random_state=42` | `test_size=0.3`, `random_state=42` |
 | Scaling | `StandardScaler` fit on train only | `StandardScaler` fit on train only |
 | Tuning | CV / RidgeCV / LassoCV | CV / GridSearchCV / elbow method |
@@ -174,11 +174,13 @@ Any recent Anaconda / scikit-learn ≥ 1.3 environment will work. Development wa
 
 ### Regression (GDP Prediction)
 
+Metrics are reported on the log-GDP scale (target was log-transformed with `np.log1p` during preparation).
+
 | Model | MAE | MSE | RMSE |
 |---|---|---|---|
-| **Linear Regression** (selected) | 3.62e+11 | 4.15e+23 | 6.44e+11 |
-| Ridge | 4.20e+11 | 5.18e+23 | 7.20e+11 |
-| Lasso | 3.96e+11 | 4.72e+23 | 6.87e+11 |
+| Linear Regression | 1.083 | 1.953 | 1.398 |
+| **Ridge** (alpha = 11, selected) | **1.045** | **1.832** | **1.354** |
+| Lasso | 1.062 | 1.869 | 1.367 |
 
 ### Classification (Customer Churn)
 
