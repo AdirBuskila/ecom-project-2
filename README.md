@@ -32,18 +32,23 @@ Both notebooks follow an identical, rigorous workflow so the engineering pattern
 
 ```
 ecom-project-2/
-├── Excel Files/
-│   ├── Covid19_With_GDP_Values.csv       # Regression dataset
-│   └── customer_churn_dataset.csv         # Classification dataset
-├── covid_gdp.ipynb                        # Part 1 — Regression notebook
-├── classification.ipynb                   # Part 2 — Classification notebook
-├── final_gdp_model.joblib                 # Exported regression model
-├── scaler_gdp.joblib                      # Exported GDP scaler
-├── final_churn_model.joblib               # Exported classification model
-├── final_churn_scaler.joblib              # Exported churn scaler
-├── Supervised Learning - Home Project.pdf # Original assignment brief
+├── data/                                       # Datasets
+│   ├── Covid19_With_GDP_Values.csv             # Regression dataset
+│   └── customer_churn_dataset.csv              # Classification dataset
+├── models/                                     # Exported model artifacts
+│   ├── final_gdp_model.joblib                  # Regression model (Ridge)
+│   ├── scaler_gdp.joblib                       # GDP feature scaler
+│   ├── polynomial_converter_gdp.joblib         # Polynomial transformer (only created when Polynomial wins selection)
+│   ├── final_churn_model.joblib                # Classification model (Random Forest)
+│   └── final_churn_scaler.joblib               # Churn feature scaler
+├── docs/
+│   └── Supervised Learning - Home Project.pdf  # Original assignment brief
+├── covid_gdp.ipynb                             # Part 1 — Regression notebook
+├── classification.ipynb                        # Part 2 — Classification notebook
 └── README.md
 ```
+
+Each notebook defines `DATA_DIR = Path("data")` and `MODELS_DIR = Path("models")` immediately after its imports, so every read/write below those constants flows through the folders above. Move the data or model folders only by updating those two constants.
 
 ---
 
@@ -145,9 +150,9 @@ Both notebooks follow the same disciplined workflow:
 ## How to Run
 
 1. Clone the repository and navigate to the project folder.
-2. Ensure the `Excel Files/` folder is in the project root with both CSVs present.
-3. Open either notebook in Jupyter or VS Code.
-4. Run cells top-to-bottom. Both notebooks are self-contained and will regenerate the joblib files when the deployment cells run.
+2. Ensure the `data/` folder is in the project root with both CSVs present.
+3. Open either notebook in Jupyter or VS Code (run from the repo root so the `DATA_DIR` / `MODELS_DIR` constants resolve correctly).
+4. Run cells top-to-bottom. Both notebooks are self-contained and will regenerate the joblib files in `models/` when the deployment cells run (the `models/` folder is created automatically on first run if missing).
 
 **Estimated run times:**
 - `covid_gdp.ipynb` — under 1 minute
